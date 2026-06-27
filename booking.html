@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健康檢查預約系統</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7f6;
+        display: flex;
+        justify-content: center;
+        padding: 50px 20px;
+    }
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 460px;
+    }
+    h2 { text-align: center; color: #333; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+    input[type="text"], select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .checkbox-group {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .checkbox-group label {
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+    .hint {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    button:disabled { background-color: #aaa; cursor: not-allowed; }
+    select:disabled { background-color: #eee; }
+</style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>健康檢查預約表</h2>
+    <form id="bookingForm">
+        <div class="form-group">
+            <label for="empCode">行名代號：</label>
+            <input type="text" id="empCode" required placeholder="請輸入行名代號">
+        </div>
+
+        <div class="form-group">
+            <label for="group">組別：</label>
+            <select id="group" required>
+                <option value="">請選擇組別</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="dept">課別：</label>
+            <select id="dept" required disabled>
+                <option value="">請先選擇組別</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>檢查項目（可多選）：</label>
+            <div class="checkbox-group" id="itemsGroup">
+                <label><input type="checkbox" name="items" value="高溫健康檢查"> 高溫健康檢查</label>
+                <label><input type="checkbox" name="items" value="粉塵健康檢查"> 粉塵健康檢查</label>
+                <label><input type="checkbox" name="items" value="噪音健康檢查"> 噪音健康檢查</label>
+                <label><input type="checkbox" name="items" value="一般健康檢查"> 一般健康檢查</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="date">預約日期：</label>
+            <select id="date" required>
+                <option value="">請選擇日期</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="slot">預約時段：</label>
+            <select id="slot" required disabled>
+                <option value="">請先選擇日期</option>
+            </select>
+            <div class="hint" id="slotHint"></div>
+        </div>
+
+        <button type="submit" id="submitBtn">送出預約</button>
+    </form>
+</div>
+
+<script src="booking.js"></script>
+
+</body>
+</html>
