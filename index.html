@@ -20,7 +20,7 @@
         width: 100%;
         max-width: 460px;
     }
-    h2 { text-align: center; color: #333; }
+    h2 { text-align: center; color: #333; margin-bottom: 24px; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
     input[type="text"], select {
@@ -29,11 +29,12 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         box-sizing: border-box;
+        font-size: 14px;
     }
     .checkbox-group {
         border: 1px solid #ccc;
         border-radius: 4px;
-        padding: 10px;
+        padding: 10px 14px;
     }
     .checkbox-group label {
         font-weight: normal;
@@ -42,15 +43,11 @@
         gap: 8px;
         margin-bottom: 6px;
         color: #333;
+        cursor: pointer;
     }
-    .checkbox-group input[type="checkbox"] {
-        width: auto;
-    }
-    .hint {
-        font-size: 13px;
-        color: #888;
-        margin-top: 4px;
-    }
+    .checkbox-group label:last-child { margin-bottom: 0; }
+    .checkbox-group input[type="checkbox"] { width: auto; cursor: pointer; }
+    .hint { font-size: 13px; color: #888; margin-top: 4px; }
     button {
         width: 100%;
         padding: 12px;
@@ -62,18 +59,18 @@
         cursor: pointer;
         margin-top: 10px;
     }
+    button:hover:not(:disabled) { background-color: #45a049; }
     button:disabled { background-color: #aaa; cursor: not-allowed; }
-    select:disabled { background-color: #eee; }
+    select:disabled { background-color: #eee; color: #999; }
 </style>
 </head>
 <body>
-
 <div class="form-container">
     <h2>健康檢查預約表</h2>
     <form id="bookingForm">
         <div class="form-group">
-            <label for="empCode">姓名代號：</label>
-            <input type="text" id="empCode" required placeholder="請輸入姓名代號">
+            <label for="empCode">行名代號：</label>
+            <input type="text" id="empCode" required placeholder="請輸入行名代號">
         </div>
 
         <div class="form-group">
@@ -92,7 +89,7 @@
 
         <div class="form-group">
             <label>檢查項目（可多選）：</label>
-            <div class="checkbox-group" id="itemsGroup">
+            <div class="checkbox-group">
                 <label><input type="checkbox" name="items" value="高溫健康檢查"> 高溫健康檢查</label>
                 <label><input type="checkbox" name="items" value="粉塵健康檢查"> 粉塵健康檢查</label>
                 <label><input type="checkbox" name="items" value="噪音健康檢查"> 噪音健康檢查</label>
@@ -121,139 +118,115 @@
 
 <script>
     // ─────────────────────────────────────────────
-    // ⚙ 設定：填入你的 Google Apps Script Web App 
+    // ⚙ 設定：填入你的 Google Apps Script Web App URL
     // ─────────────────────────────────────────────
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyJUitz9dMEDbzpoQ3WkZFOgIqQPrIKpeipHl-L_3uUTjxyHL7FXOwi4ql5RAZyAZ8h/exec";
+    const GOOGLE_SHEET_URL = "請貼上你部署 Apps Script 後取得的網頁應用程式URL";
 
-    // ====== 可預約日期區間設定 ======
-    const START_DATE = "2026-07-15";
-    const END_DATE = "2026-08-30";
+    // ====== 可預約日期區間 ======
+    const START_DATE = "2026-09-30";
+    const END_DATE   = "2026-10-31";
 
-    // ====== 組別與課別對應表（依組織架構圖更新） ======
+    // ====== 組別與課別對應表 ======
     const DEPT_MAP = {
-        "汽機組": ["經理", "主機", "輔機", "複循環汽機"],
-        "運轉一組": ["經理", "運轉一", "運轉二", "效率"],
-        "運轉二組": ["經理", "運轉", "效率", "品核"],
-        "鍋爐組": ["經理", "主機", "輔機", "煤灰處理", "排煙脫硝", "廢熱鍋爐"],
-        "修配組": ["經理", "修配", "機具", "土木一", "土木二", "共設一", "共設二"],
-        "電氣一組": ["經理", "電機一", "電機二", "電器一", "電器二", "變電一", "變電二"],
-        "機械組": ["經理", "共同設備課", "廢熱鍋爐課", "土木課", "修配課"],
-        "電氣二組": ["經理", "電機課", "電器課", "變電課"],
-        "熱機組": ["經理", "熱機一課", "熱機二課", "熱機三課", "熱機四課"],
-        "儀資一組": ["經理", "儀資一課", "儀資二課", "儀資三課", "儀資四課", "儀資五課", "儀資六課"],
-        "環化一組": ["經理", "水處一課", "水處二課", "環保一課", "環保二課"],
-        "氣渦輪機組": ["經理", "氣渦一課", "氣渦二課"],
-        "儀資二組": ["經理", "複儀一課", "複儀二課", "複儀三課", "複儀四課", "複儀五課"],
-        "環化二組": ["經理", "化學課", "水處理課", "環境保護課", "生態管理課", "環境教育推廣課"],
-        "供應組": ["經理", "總務", "採購", "公開", "管理", "材料一課", "材料二課", "材料三課", "事務管理課"],
-        "儀資三組": ["經理", "儀資一課", "儀資二課", "儀資三課", "儀資四課"],
-        "儲運組": ["經理", "碼頭營運", "燃料營運", "皮帶機械", "堆取煤機"],
-        "會計組": ["經理", "編審", "資材", "成本"],
-        "工安組": ["經理", "工安一", "工安二", "工安三"],
-        "政風組": ["經理", "政風查核"],
-        "人力資源組": ["經理", "人力運用", "人力發展"]
+        "運轉一組":       ["運轉一課", "運轉二課", "效率課"],
+        "運轉二組":       ["運轉課", "效率課", "品核課"],
+        "汽力機組值班":   ["汽力A班", "汽力B班", "汽力C班", "汽力D班"],
+        "複循環機組值班": ["複循環機組值班A班", "複循環機組值班B班", "複循環機組值班C班", "複循環機組值班D班"],
+        "新複循環值班":   ["新複循環值班A班", "新複循環值班B班", "新複循環值班C班", "新複循環值班D班"],
+        "氣渦組":         ["氣渦一課", "氣渦二課"],
+        "熱機組":         ["熱機一課", "熱機二課", "熱機三課", "熱機四課"],
+        "鍋爐組":         ["廢熱鍋爐課", "鍋爐主機課", "鍋爐輔機課", "鍋爐FGD"],
+        "汽機組":         ["汽機主機課", "汽機輔機課", "複汽課"],
+        "電氣一組":       ["電器一課", "電器二課", "變電一課", "電機(一)課", "電機(二)課", "變電二課", "電氣課"],
+        "電氣二組":       ["電器課", "變電課", "電機課"],
+        "儀資一組":       ["儀資一課", "儀資二課", "儀資三課", "儀資四課", "儀資六課"],
+        "儀資二組":       ["複儀一課", "複儀二課", "複儀三課", "複儀四課", "複儀五課"],
+        "儀資三組":       ["儀資一課", "儀資二課", "儀資三課", "儀資四課"],
+        "修配組":         ["修配課", "土木一課", "土木二課", "共設一課", "共設二課"],
+        "機械組":         ["共同設備課", "廢熱鍋爐課", "土木課", "修配課"],
+        "環保一組":       ["水處理課", "環保一課", "環保二課"],
+        "環保二組":       ["化學課", "環保課", "水處理課", "生態課", "環境教育推廣課"],
+        "工安組":         ["工安一課", "工安二課", "工安三課", "工安四課"],
+        "供應組":         ["總務課", "管理課", "事務管理課", "材料一課", "材料二課", "材料三課", "採購課", "公關課"],
+        "會計組":         ["編審課", "本成本課", "資材課", "複循環編審課"],
+        "人資組":         ["人力運用課", "人力發展課"],
+        "政風組":         ["政風查核課"],
+        "儲運組":         ["碼頭營運課", "燃料營運課", "皮帶機械課", "堆取煤機課"]
     };
 
-    const WEEKDAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
+    const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
+    function pad(n){ return String(n).padStart(2,"0"); }
 
-    function pad(n) { return String(n).padStart(2, "0"); }
-
-    // 產生 START_DATE ~ END_DATE 之間的所有平日（排除週六、週日）
-    function generateWeekdayDates(startStr, endStr) {
+    // 產生區間內所有平日
+    function generateWeekdayDates(startStr, endStr){
         const dates = [];
         const start = new Date(startStr + "T00:00:00");
-        const end = new Date(endStr + "T00:00:00");
+        const end   = new Date(endStr   + "T00:00:00");
         let cur = new Date(start);
-        while (cur <= end) {
+        while(cur <= end){
             const day = cur.getDay();
-            if (day !== 0 && day !== 6) {
-                const dateStr = `${cur.getFullYear()}-${pad(cur.getMonth() + 1)}-${pad(cur.getDate())}`;
-                dates.push({ value: dateStr, label: `${dateStr} (${WEEKDAY_NAMES[day]})` });
+            if(day !== 0 && day !== 6){
+                const ds = `${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
+                dates.push({ value: ds, label: `${ds} (${WEEKDAY_NAMES[day]})` });
             }
-            cur.setDate(cur.getDate() + 1);
+            cur.setDate(cur.getDate()+1);
         }
         return dates;
     }
 
-    // ====== 初始化組別下拉選單 ======
+    // ====== 初始化組別 ======
     const groupSelect = document.getElementById('group');
     Object.keys(DEPT_MAP).forEach(g => {
         const opt = document.createElement('option');
-        opt.value = g;
-        opt.textContent = g;
+        opt.value = g; opt.textContent = g;
         groupSelect.appendChild(opt);
     });
 
-    // ====== 初始化日期下拉選單 ======
+    // ====== 初始化日期 ======
     const dateSelect = document.getElementById('date');
     generateWeekdayDates(START_DATE, END_DATE).forEach(d => {
         const opt = document.createElement('option');
-        opt.value = d.value;
-        opt.textContent = d.label;
+        opt.value = d.value; opt.textContent = d.label;
         dateSelect.appendChild(opt);
     });
 
-    // ====== 組別變動 -> 更新課別 ======
+    // ====== 組別 → 課別 ======
     const deptSelect = document.getElementById('dept');
     groupSelect.addEventListener('change', () => {
         const group = groupSelect.value;
         deptSelect.innerHTML = '';
-        if (!group) {
+        if(!group){
             deptSelect.disabled = true;
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.textContent = "請先選擇組別";
-            deptSelect.appendChild(opt);
+            deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
             return;
         }
         deptSelect.disabled = false;
-        const placeholder = document.createElement('option');
-        placeholder.value = "";
-        placeholder.textContent = "請選擇課別";
-        deptSelect.appendChild(placeholder);
-        DEPT_MAP[group].forEach(dept => {
+        const ph = document.createElement('option');
+        ph.value = ""; ph.textContent = "請選擇課別";
+        deptSelect.appendChild(ph);
+        DEPT_MAP[group].forEach(d => {
             const opt = document.createElement('option');
-            opt.value = dept;
-            opt.textContent = dept;
+            opt.value = d; opt.textContent = d;
             deptSelect.appendChild(opt);
         });
     });
 
-    // ====== 日期變動 -> 查詢該日可預約時段 ======
+    // ====== 日期 → 查詢可預約時段 ======
     const slotSelect = document.getElementById('slot');
-    const slotHint = document.getElementById('slotHint');
+    const slotHint   = document.getElementById('slotHint');
 
-    dateSelect.addEventListener('change', async () => {
-        const date = dateSelect.value;
-        slotSelect.innerHTML = '';
-        slotHint.textContent = '';
-
-        if (!date) {
-            slotSelect.disabled = true;
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.textContent = "請先選擇日期";
-            slotSelect.appendChild(opt);
-            return;
-        }
-
+    async function loadSlots(date){
         slotSelect.disabled = true;
-        const loadingOpt = document.createElement('option');
-        loadingOpt.textContent = "查詢可預約時段中...";
-        slotSelect.appendChild(loadingOpt);
-
+        slotSelect.innerHTML = '<option>查詢可預約時段中...</option>';
+        slotHint.textContent = '';
         try {
-            const response = await fetch(`${GOOGLE_SHEET_URL}?date=${date}`);
-            const result = await response.json();
-
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?date=${date}`);
+            const result = await res.json();
             slotSelect.innerHTML = '';
-
-            if (result.status === "success" && result.slots.length > 0) {
-                const placeholder = document.createElement('option');
-                placeholder.value = "";
-                placeholder.textContent = "請選擇時段";
-                slotSelect.appendChild(placeholder);
-
+            if(result.status === "success" && result.slots.length > 0){
+                const ph = document.createElement('option');
+                ph.value = ""; ph.textContent = "請選擇時段";
+                slotSelect.appendChild(ph);
                 result.slots.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.slot;
@@ -262,75 +235,66 @@
                 });
                 slotSelect.disabled = false;
             } else {
-                const opt = document.createElement('option');
-                opt.value = "";
-                opt.textContent = "此日期已無可預約時段";
-                slotSelect.appendChild(opt);
-                slotHint.textContent = "請改選其他日期";
+                slotSelect.innerHTML = '<option value="">此日期已無可預約時段</option>';
+                slotHint.textContent = '請改選其他日期';
             }
-        } catch (error) {
-            slotSelect.innerHTML = '';
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.textContent = "查詢失敗，請重新選擇日期";
-            slotSelect.appendChild(opt);
-            slotHint.textContent = "網路連線錯誤：" + error;
+        } catch(err){
+            slotSelect.innerHTML = '<option value="">查詢失敗，請重新選擇日期</option>';
+            slotHint.textContent = '網路連線錯誤：' + err;
         }
+    }
+
+    dateSelect.addEventListener('change', () => {
+        const date = dateSelect.value;
+        if(!date){
+            slotSelect.disabled = true;
+            slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
+            return;
+        }
+        loadSlots(date);
     });
 
     // ====== 送出表單 ======
     document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const submitBtn = document.getElementById('submitBtn');
-        const empCode = document.getElementById('empCode').value;
-        const group = groupSelect.value;
-        const dept = deptSelect.value;
-        const date = dateSelect.value;
-        const slot = slotSelect.value;
-        const items = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
+        const empCode = document.getElementById('empCode').value.trim();
+        const group   = groupSelect.value;
+        const dept    = deptSelect.value;
+        const date    = dateSelect.value;
+        const slot    = slotSelect.value;
+        const items   = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
 
-        if (!slot) {
-            alert("請選擇預約時段");
-            return;
-        }
-        if (items.length === 0) {
-            alert("請至少選擇一項檢查項目");
-            return;
-        }
+        if(!slot)         { alert("請選擇預約時段"); return; }
+        if(!items.length) { alert("請至少選擇一項檢查項目"); return; }
 
         submitBtn.disabled = true;
         submitBtn.innerText = "預約資料送出中，請稍候...";
 
-        const payload = { empCode, group, dept, items, date, slot };
-
         try {
-            const response = await fetch(GOOGLE_SHEET_URL, {
+            const res    = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ empCode, group, dept, items, date, slot })
             });
-            const result = await response.json();
-
-            if (result.status === "success") {
+            const result = await res.json();
+            if(result.status === "success"){
                 alert("預約成功！");
                 document.getElementById('bookingForm').reset();
                 deptSelect.disabled = true;
                 deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
-                slotSelect.disabled = true;
+                slotSelect.disabled  = true;
                 slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
             } else {
                 alert("發生錯誤：" + result.message);
-                // 若時段被搶走，重新觸發日期變動以更新可預約時段
-                dateSelect.dispatchEvent(new Event('change'));
+                loadSlots(date);
             }
-        } catch (error) {
-            alert("網路連線錯誤，請重試：" + error);
+        } catch(err){
+            alert("網路連線錯誤，請重試：" + err);
         } finally {
-            submitBtn.disabled = false;
+            submitBtn.disabled  = false;
             submitBtn.innerText = "送出預約";
         }
     });
 </script>
-
 </body>
 </html>
