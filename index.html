@@ -29,27 +29,12 @@
         padding-bottom: 20px;
         border-bottom: 2px solid #e8f5e9;
     }
-    .header h1 {
-        font-size: 20px;
-        color: #1b5e20;
-        font-weight: 700;
-        line-height: 1.6;
-    }
-    .header p {
-        font-size: 13px;
-        color: #888;
-        margin-top: 6px;
-    }
+    .header h1 { font-size: 20px; color: #1b5e20; font-weight: 700; line-height: 1.6; }
+    .header p  { font-size: 13px; color: #777; margin-top: 6px; }
     .form-group { margin-bottom: 18px; }
-    label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 6px;
-        color: #333;
-        font-size: 14px;
-    }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 14px; }
     .required { color: #e53935; margin-left: 2px; }
-    input[type="text"], select {
+    input[type="text"], input[type="tel"], select {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid #ccc;
@@ -58,57 +43,30 @@
         transition: border-color .2s;
         background: white;
     }
-    input[type="text"]:focus, select:focus {
+    input[type="text"]:focus, input[type="tel"]:focus, select:focus {
         outline: none;
         border-color: #43a047;
         box-shadow: 0 0 0 3px rgba(67,160,71,.12);
     }
-    select:disabled {
-        background: #f5f5f5;
-        color: #aaa;
-        cursor: not-allowed;
-    }
-    .checkbox-group {
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 12px 16px;
-    }
+    select:disabled { background: #f5f5f5; color: #aaa; cursor: not-allowed; }
+    .checkbox-group { border: 1px solid #ccc; border-radius: 6px; padding: 12px 16px; }
     .checkbox-group label {
-        font-weight: normal;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 9px;
-        color: #444;
-        cursor: pointer;
-        font-size: 14px;
+        font-weight: normal; display: flex; align-items: center;
+        gap: 8px; margin-bottom: 9px; color: #444; cursor: pointer; font-size: 14px;
     }
     .checkbox-group label:last-child { margin-bottom: 0; }
-    .checkbox-group input[type="checkbox"] {
-        width: 16px; height: 16px;
-        cursor: pointer;
-        accent-color: #43a047;
-        flex-shrink: 0;
-    }
+    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #43a047; flex-shrink: 0; }
+    .slot-info { border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 6px; }
+    .slot-ok   { background: #f1f8e9; border: 1px solid #aed581; color: #33691e; }
+    .slot-full { background: #fce4ec; border: 1px solid #f48fb1; color: #880e4f; }
+    .slot-load { background: #f5f5f5; border: 1px solid #e0e0e0; color: #888; }
     .hint { font-size: 12px; color: #f57c00; margin-top: 5px; }
-    hr.divider {
-        border: none;
-        border-top: 1px dashed #e0e0e0;
-        margin: 20px 0;
-    }
+    hr.divider { border: none; border-top: 1px dashed #e0e0e0; margin: 20px 0; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     button[type="submit"] {
-        width: 100%;
-        padding: 13px;
-        background: #43a047;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        margin-top: 8px;
-        transition: background .2s;
-        letter-spacing: 2px;
+        width: 100%; padding: 13px; background: #43a047; color: white;
+        border: none; border-radius: 6px; font-size: 16px; font-weight: 700;
+        cursor: pointer; margin-top: 8px; transition: background .2s; letter-spacing: 2px;
     }
     button[type="submit"]:hover:not(:disabled) { background: #388e3c; }
     button[type="submit"]:disabled { background: #bdbdbd; cursor: not-allowed; }
@@ -118,7 +76,7 @@
 <div class="form-container">
     <div class="header">
         <h1>115年興達發電廠<br>健康檢查預約系統</h1>
-        <p>預約日期：115年9月30日 至 115年10月31日（工作日）<br>每時段上限 29 人，額滿自動關閉</p>
+        <p>每日上午可預約，每日上限 29 人，額滿自動關閉</p>
     </div>
 
     <form id="bookingForm">
@@ -156,22 +114,30 @@
 
         <hr class="divider">
 
+        <!-- 連絡電話（兩欄） -->
+        <div class="two-col">
+            <div class="form-group">
+                <label for="phone1">連絡電話1<span class="required">*</span></label>
+                <input type="tel" id="phone1" required placeholder="例：0912345678">
+            </div>
+            <div class="form-group">
+                <label for="phone2">連絡電話2</label>
+                <input type="tel" id="phone2" placeholder="備用電話（選填）">
+            </div>
+        </div>
+
+        <hr class="divider">
+
         <div class="form-group">
             <label for="date">預約日期<span class="required">*</span></label>
             <select id="date" required>
                 <option value="">請選擇日期</option>
             </select>
-        </div>
-
-        <div class="form-group">
-            <label for="slot">預約時段<span class="required">*</span></label>
-            <select id="slot" required disabled>
-                <option value="">請先選擇日期</option>
-            </select>
+            <div id="slotInfo" style="display:none;"></div>
             <div class="hint" id="slotHint"></div>
         </div>
 
-        <button type="submit" id="submitBtn">送出預約</button>
+        <button type="submit" id="submitBtn" disabled>送出預約</button>
     </form>
 </div>
 
@@ -181,55 +147,47 @@
     // ─────────────────────────────────────────────────────────
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxF8xKgv3ooknria1Is-vqVrCAS46MNQAgd0FBBv-oncRyqaI-Uue0Th8-2hss6wpST/exec";
 
-    // ====== 預約日期區間（民國115年 = 西元2026年） ======
-    const START_DATE = "2026-09-30";
-    const END_DATE   = "2026-10-31";
+    // ====== 指定可預約日期（民國115年 = 西元2026年） ======
+    const AVAILABLE_DATES = [
+        "2026-09-30",
+        "2026-10-01","2026-10-02","2026-10-05","2026-10-06",
+        "2026-10-07","2026-10-08","2026-10-12","2026-10-13",
+        "2026-10-14","2026-10-15","2026-10-16","2026-10-19",
+        "2026-10-20","2026-10-21","2026-10-22","2026-10-23",
+        "2026-10-24","2026-10-27","2026-10-28","2026-10-29","2026-10-30"
+    ];
+
+    const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
+    const SLOT_VALUE    = "上午場";
+    const CAPACITY      = 29;
 
     // ====== 組別與課別對應表 ======
     const DEPT_MAP = {
-        "運轉一組":       ["運轉一課", "運轉二課", "效率課"],
-        "運轉二組":       ["運轉課", "效率課", "品核課"],
-        "汽力機組值班":   ["汽力A班", "汽力B班", "汽力C班", "汽力D班"],
-        "複循環機組值班": ["複循環機組值班A班", "複循環機組值班B班", "複循環機組值班C班", "複循環機組值班D班"],
-        "新複循環值班":   ["新複循環值班A班", "新複循環值班B班", "新複循環值班C班", "新複循環值班D班"],
-        "氣渦組":         ["氣渦一課", "氣渦二課"],
-        "熱機組":         ["熱機一課", "熱機二課", "熱機三課", "熱機四課"],
-        "鍋爐組":         ["廢熱鍋爐課", "鍋爐主機課", "鍋爐輔機課", "鍋爐FGD"],
-        "汽機組":         ["汽機主機課", "汽機輔機課", "複汽課"],
-        "電氣一組":       ["電器一課", "電器二課", "變電一課", "電機(一)課", "電機(二)課", "變電二課", "電氣課"],
-        "電氣二組":       ["電器課", "變電課", "電機課"],
-        "儀資一組":       ["儀資一課", "儀資二課", "儀資三課", "儀資四課", "儀資六課"],
-        "儀資二組":       ["複儀一課", "複儀二課", "複儀三課", "複儀四課", "複儀五課"],
-        "儀資三組":       ["儀資一課", "儀資二課", "儀資三課", "儀資四課"],
-        "修配組":         ["修配課", "土木一課", "土木二課", "共設一課", "共設二課"],
-        "機械組":         ["共同設備課", "廢熱鍋爐課", "土木課", "修配課"],
-        "環保一組":       ["水處理課", "環保一課", "環保二課"],
-        "環保二組":       ["化學課", "環保課", "水處理課", "生態課", "環境教育推廣課"],
-        "工安組":         ["工安一課", "工安二課", "工安三課", "工安四課"],
-        "供應組":         ["總務課", "管理課", "事務管理課", "材料一課", "材料二課", "材料三課", "採購課", "公關課"],
-        "會計組":         ["編審課", "本成本課", "資材課", "複循環編審課"],
-        "人資組":         ["人力運用課", "人力發展課"],
+        "運轉一組":       ["運轉一課","運轉二課","效率課"],
+        "運轉二組":       ["運轉課","效率課","品核課"],
+        "汽力機組值班":   ["汽力A班","汽力B班","汽力C班","汽力D班"],
+        "複循環機組值班": ["複循環機組值班A班","複循環機組值班B班","複循環機組值班C班","複循環機組值班D班"],
+        "新複循環值班":   ["新複循環值班A班","新複循環值班B班","新複循環值班C班","新複循環值班D班"],
+        "氣渦組":         ["氣渦一課","氣渦二課"],
+        "熱機組":         ["熱機一課","熱機二課","熱機三課","熱機四課"],
+        "鍋爐組":         ["廢熱鍋爐課","鍋爐主機課","鍋爐輔機課","鍋爐FGD"],
+        "汽機組":         ["汽機主機課","汽機輔機課","複汽課"],
+        "電氣一組":       ["電器一課","電器二課","變電一課","電機(一)課","電機(二)課","變電二課","電氣課"],
+        "電氣二組":       ["電器課","變電課","電機課"],
+        "儀資一組":       ["儀資一課","儀資二課","儀資三課","儀資四課","儀資六課"],
+        "儀資二組":       ["複儀一課","複儀二課","複儀三課","複儀四課","複儀五課"],
+        "儀資三組":       ["儀資一課","儀資二課","儀資三課","儀資四課"],
+        "修配組":         ["修配課","土木一課","土木二課","共設一課","共設二課"],
+        "機械組":         ["共同設備課","廢熱鍋爐課","土木課","修配課"],
+        "環保一組":       ["水處理課","環保一課","環保二課"],
+        "環保二組":       ["化學課","環保課","水處理課","生態課","環境教育推廣課"],
+        "工安組":         ["工安一課","工安二課","工安三課","工安四課"],
+        "供應組":         ["總務課","管理課","事務管理課","材料一課","材料二課","材料三課","採購課","公關課"],
+        "會計組":         ["編審課","本成本課","資材課","複循環編審課"],
+        "人資組":         ["人力運用課","人力發展課"],
         "政風組":         ["政風查核課"],
-        "儲運組":         ["碼頭營運課", "燃料營運課", "皮帶機械課", "堆取煤機課"]
+        "儲運組":         ["碼頭營運課","燃料營運課","皮帶機械課","堆取煤機課"]
     };
-
-    const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
-    const pad = n => String(n).padStart(2, "0");
-
-    // 產生平日清單
-    function generateWeekdayDates(s, e) {
-        const dates = [], end = new Date(e + "T00:00:00");
-        let cur = new Date(s + "T00:00:00");
-        while (cur <= end) {
-            const day = cur.getDay();
-            if (day !== 0 && day !== 6) {
-                const ds = `${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
-                dates.push({ value: ds, label: `${ds} (${WEEKDAY_NAMES[day]})` });
-            }
-            cur.setDate(cur.getDate() + 1);
-        }
-        return dates;
-    }
 
     // ── 組別初始化 ──
     const groupSelect = document.getElementById('group');
@@ -239,11 +197,14 @@
         groupSelect.appendChild(o);
     });
 
-    // ── 日期初始化 ──
+    // ── 日期初始化（直接列出指定日期，不自動產生） ──
     const dateSelect = document.getElementById('date');
-    generateWeekdayDates(START_DATE, END_DATE).forEach(d => {
-        const o = document.createElement('option');
-        o.value = d.value; o.textContent = d.label;
+    AVAILABLE_DATES.forEach(ds => {
+        const d   = new Date(ds + "T00:00:00");
+        const day = WEEKDAY_NAMES[d.getDay()];
+        const o   = document.createElement('option');
+        o.value = ds;
+        o.textContent = `${ds} (${day})`;
         dateSelect.appendChild(o);
     });
 
@@ -268,48 +229,49 @@
         });
     });
 
-    // ── 日期 → 查詢時段 ──
-    const slotSelect = document.getElementById('slot');
-    const slotHint   = document.getElementById('slotHint');
+    // ── 日期 → 查詢當日名額 ──
+    const slotInfo  = document.getElementById('slotInfo');
+    const slotHint  = document.getElementById('slotHint');
+    const submitBtn = document.getElementById('submitBtn');
 
-    async function loadSlots(date) {
-        slotSelect.disabled = true;
-        slotSelect.innerHTML = '<option>查詢可預約時段中...</option>';
+    async function loadDayCapacity(date) {
+        slotInfo.style.display = 'block';
+        slotInfo.className = 'slot-info slot-load';
+        slotInfo.textContent = '查詢當日剩餘名額中...';
         slotHint.textContent = '';
+        submitBtn.disabled = true;
         try {
             const res    = await fetch(`${GOOGLE_SHEET_URL}?date=${date}`);
             const result = await res.json();
-            slotSelect.innerHTML = '';
-            if (result.status === "success" && result.slots.length > 0) {
-                const ph = document.createElement('option');
-                ph.value = ''; ph.textContent = '請選擇時段';
-                slotSelect.appendChild(ph);
-                result.slots.forEach(s => {
-                    const o = document.createElement('option');
-                    o.value = s.slot;
-                    o.textContent = `${s.slot}（剩餘 ${s.remaining} 位）`;
-                    slotSelect.appendChild(o);
-                });
-                slotSelect.disabled = false;
+            if (result.status === "success") {
+                if (result.remaining > 0) {
+                    slotInfo.className = 'slot-info slot-ok';
+                    slotInfo.textContent = `上午場｜剩餘名額：${result.remaining} / ${CAPACITY} 位`;
+                    submitBtn.disabled = false;
+                } else {
+                    slotInfo.className = 'slot-info slot-full';
+                    slotInfo.textContent = '⚠ 此日期名額已額滿，請選擇其他日期';
+                    submitBtn.disabled = true;
+                }
             } else {
-                slotSelect.innerHTML = '<option value="">此日期已無可預約時段</option>';
-                slotHint.textContent = '請改選其他日期';
+                slotInfo.className = 'slot-info slot-full';
+                slotInfo.textContent = '查詢失敗：' + result.message;
             }
         } catch (err) {
-            slotSelect.innerHTML = '<option value="">查詢失敗，請重新選擇日期</option>';
-            slotHint.textContent = '網路連線錯誤：' + err;
+            slotInfo.className = 'slot-info slot-full';
+            slotInfo.textContent = '網路連線錯誤，請重新選擇日期';
+            slotHint.textContent = '' + err;
         }
     }
 
     dateSelect.addEventListener('change', () => {
         const date = dateSelect.value;
         if (!date) {
-            slotSelect.disabled = true;
-            slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
-            slotHint.textContent = '';
+            slotInfo.style.display = 'none';
+            submitBtn.disabled = true;
             return;
         }
-        loadSlots(date);
+        loadDayCapacity(date);
     });
 
     // ── 送出表單 ──
@@ -320,15 +282,16 @@
         const group   = groupSelect.value;
         const dept    = deptSelect.value;
         const date    = dateSelect.value;
-        const slot    = slotSelect.value;
+        const phone1  = document.getElementById('phone1').value.trim();
+        const phone2  = document.getElementById('phone2').value.trim();
         const items   = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
 
         if (!empName)      { alert("請填寫姓名代號"); return; }
         if (!group)        { alert("請選擇組別"); return; }
         if (!dept)         { alert("請選擇課別"); return; }
         if (!items.length) { alert("請至少選擇一項檢查項目"); return; }
+        if (!phone1)       { alert("請填寫連絡電話1"); return; }
         if (!date)         { alert("請選擇預約日期"); return; }
-        if (!slot)         { alert("請選擇預約時段"); return; }
 
         btn.disabled  = true;
         btn.innerText = "預約資料送出中，請稍候...";
@@ -336,25 +299,24 @@
         try {
             const res    = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                body: JSON.stringify({ empName, group, dept, items, date, slot })
+                body: JSON.stringify({ empName, group, dept, items, phone1, phone2, date, slot: SLOT_VALUE })
             });
             const result = await res.json();
             if (result.status === "success") {
-                alert("✅ 預約成功！請記下您的預約時段。");
+                alert(`✅ 預約成功！\n姓名代號：${empName}\n預約日期：${date}\n時間：上午場\n請準時前往，謝謝。`);
                 document.getElementById('bookingForm').reset();
                 deptSelect.disabled = true;
                 deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
-                slotSelect.disabled  = true;
-                slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
+                slotInfo.style.display = 'none';
                 slotHint.textContent = '';
+                btn.disabled = true;
             } else {
                 alert("發生錯誤：" + result.message);
-                if (date) loadSlots(date);
+                if (date) loadDayCapacity(date);
             }
         } catch (err) {
             alert("網路連線錯誤，請重試：" + err);
         } finally {
-            btn.disabled  = false;
             btn.innerText = "送出預約";
         }
     });
