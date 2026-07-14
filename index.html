@@ -3,92 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>健康檢查預約系統</title>
+<title>115年興達發電廠健康檢查預約系統</title>
 <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f7f6;
+        font-family: 'Segoe UI', 'Microsoft JhengHei', Tahoma, sans-serif;
+        background: linear-gradient(135deg, #e8f5e9 0%, #f4f7f6 100%);
+        min-height: 100vh;
         display: flex;
         justify-content: center;
-        padding: 50px 20px;
+        align-items: flex-start;
+        padding: 40px 20px;
     }
     .form-container {
         background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 36px 32px;
+        border-radius: 12px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
         width: 100%;
-        max-width: 460px;
+        max-width: 500px;
     }
-    h2 { text-align: center; color: #333; margin-bottom: 24px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+    .header {
+        text-align: center;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e8f5e9;
+    }
+    .header h1 {
+        font-size: 20px;
+        color: #1b5e20;
+        font-weight: 700;
+        line-height: 1.6;
+    }
+    .header p {
+        font-size: 13px;
+        color: #888;
+        margin-top: 6px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #333;
+        font-size: 14px;
+    }
+    .required { color: #e53935; margin-left: 2px; }
     input[type="text"], select {
         width: 100%;
-        padding: 10px;
+        padding: 10px 12px;
         border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
+        border-radius: 6px;
         font-size: 14px;
+        transition: border-color .2s;
+        background: white;
+    }
+    input[type="text"]:focus, select:focus {
+        outline: none;
+        border-color: #43a047;
+        box-shadow: 0 0 0 3px rgba(67,160,71,.12);
+    }
+    select:disabled {
+        background: #f5f5f5;
+        color: #aaa;
+        cursor: not-allowed;
     }
     .checkbox-group {
         border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 10px 14px;
+        border-radius: 6px;
+        padding: 12px 16px;
     }
     .checkbox-group label {
         font-weight: normal;
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 6px;
-        color: #333;
+        margin-bottom: 9px;
+        color: #444;
         cursor: pointer;
+        font-size: 14px;
     }
     .checkbox-group label:last-child { margin-bottom: 0; }
-    .checkbox-group input[type="checkbox"] { width: auto; cursor: pointer; }
-    .hint { font-size: 13px; color: #888; margin-top: 4px; }
-    button {
+    .checkbox-group input[type="checkbox"] {
+        width: 16px; height: 16px;
+        cursor: pointer;
+        accent-color: #43a047;
+        flex-shrink: 0;
+    }
+    .hint { font-size: 12px; color: #f57c00; margin-top: 5px; }
+    hr.divider {
+        border: none;
+        border-top: 1px dashed #e0e0e0;
+        margin: 20px 0;
+    }
+    button[type="submit"] {
         width: 100%;
-        padding: 12px;
-        background-color: #4CAF50;
+        padding: 13px;
+        background: #43a047;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 16px;
+        font-weight: 700;
         cursor: pointer;
-        margin-top: 10px;
+        margin-top: 8px;
+        transition: background .2s;
+        letter-spacing: 2px;
     }
-    button:hover:not(:disabled) { background-color: #45a049; }
-    button:disabled { background-color: #aaa; cursor: not-allowed; }
-    select:disabled { background-color: #eee; color: #999; }
+    button[type="submit"]:hover:not(:disabled) { background: #388e3c; }
+    button[type="submit"]:disabled { background: #bdbdbd; cursor: not-allowed; }
 </style>
 </head>
 <body>
 <div class="form-container">
-    <h2>健康檢查預約表</h2>
+    <div class="header">
+        <h1>115年興達發電廠<br>健康檢查預約系統</h1>
+        <p>預約日期：115年9月30日 至 115年10月31日（工作日）<br>每時段上限 29 人，額滿自動關閉</p>
+    </div>
+
     <form id="bookingForm">
+
         <div class="form-group">
-            <label for="empCode">姓名代號：</label>
-            <input type="text" id="empCode" required placeholder="請輸入姓名代號">
+            <label for="empName">姓名代號<span class="required">*</span></label>
+            <input type="text" id="empName" required placeholder="請輸入姓名代號">
         </div>
 
         <div class="form-group">
-            <label for="group">組別：</label>
+            <label for="group">組別<span class="required">*</span></label>
             <select id="group" required>
                 <option value="">請選擇組別</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="dept">課別：</label>
+            <label for="dept">課別<span class="required">*</span></label>
             <select id="dept" required disabled>
                 <option value="">請先選擇組別</option>
             </select>
         </div>
 
+        <hr class="divider">
+
         <div class="form-group">
-            <label>檢查項目（可多選）：</label>
+            <label>檢查項目（可多選）<span class="required">*</span></label>
             <div class="checkbox-group">
                 <label><input type="checkbox" name="items" value="高溫健康檢查"> 高溫健康檢查</label>
                 <label><input type="checkbox" name="items" value="粉塵健康檢查"> 粉塵健康檢查</label>
@@ -97,15 +154,17 @@
             </div>
         </div>
 
+        <hr class="divider">
+
         <div class="form-group">
-            <label for="date">預約日期：</label>
+            <label for="date">預約日期<span class="required">*</span></label>
             <select id="date" required>
                 <option value="">請選擇日期</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="slot">預約時段：</label>
+            <label for="slot">預約時段<span class="required">*</span></label>
             <select id="slot" required disabled>
                 <option value="">請先選擇日期</option>
             </select>
@@ -117,12 +176,12 @@
 </div>
 
 <script>
-    // ─────────────────────────────────────────────
-    // ⚙ 設定：填入你的 Google Apps Script Web App 
-    // ─────────────────────────────────────────────
-    const GOOGLE_SHEET_ = "https://script.google.com/macros/s/AKfycbxF8xKgv3ooknria1Is-vqVrCAS46MNQAgd0FBBv-oncRyqaI-Uue0Th8-2hss6wpST/exec";
+    // ─────────────────────────────────────────────────────────
+    // ⚙ 請將下方替換成你的 Google Apps Script Web App URL
+    // ─────────────────────────────────────────────────────────
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxF8xKgv3ooknria1Is-vqVrCAS46MNQAgd0FBBv-oncRyqaI-Uue0Th8-2hss6wpST/exec";
 
-    // ====== 可預約日期區間 ======
+    // ====== 預約日期區間（民國115年 = 西元2026年） ======
     const START_DATE = "2026-09-30";
     const END_DATE   = "2026-10-31";
 
@@ -155,67 +214,65 @@
     };
 
     const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
-    function pad(n){ return String(n).padStart(2,"0"); }
+    const pad = n => String(n).padStart(2, "0");
 
-    // 產生區間內所有平日
-    function generateWeekdayDates(startStr, endStr){
-        const dates = [];
-        const start = new Date(startStr + "T00:00:00");
-        const end   = new Date(endStr   + "T00:00:00");
-        let cur = new Date(start);
-        while(cur <= end){
+    // 產生平日清單
+    function generateWeekdayDates(s, e) {
+        const dates = [], end = new Date(e + "T00:00:00");
+        let cur = new Date(s + "T00:00:00");
+        while (cur <= end) {
             const day = cur.getDay();
-            if(day !== 0 && day !== 6){
+            if (day !== 0 && day !== 6) {
                 const ds = `${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
                 dates.push({ value: ds, label: `${ds} (${WEEKDAY_NAMES[day]})` });
             }
-            cur.setDate(cur.getDate()+1);
+            cur.setDate(cur.getDate() + 1);
         }
         return dates;
     }
 
-    // ====== 初始化組別 ======
+    // ── 組別初始化 ──
     const groupSelect = document.getElementById('group');
     Object.keys(DEPT_MAP).forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g; opt.textContent = g;
-        groupSelect.appendChild(opt);
+        const o = document.createElement('option');
+        o.value = g; o.textContent = g;
+        groupSelect.appendChild(o);
     });
 
-    // ====== 初始化日期 ======
+    // ── 日期初始化 ──
     const dateSelect = document.getElementById('date');
     generateWeekdayDates(START_DATE, END_DATE).forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.value; opt.textContent = d.label;
-        dateSelect.appendChild(opt);
+        const o = document.createElement('option');
+        o.value = d.value; o.textContent = d.label;
+        dateSelect.appendChild(o);
     });
 
-    // ====== 組別 → 課別 ======
+    // ── 組別 → 課別 ──
     const deptSelect = document.getElementById('dept');
     groupSelect.addEventListener('change', () => {
-        const group = groupSelect.value;
+        const g = groupSelect.value;
         deptSelect.innerHTML = '';
-        if(!group){
+        if (!g) {
             deptSelect.disabled = true;
             deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
             return;
         }
         deptSelect.disabled = false;
         const ph = document.createElement('option');
-        ph.value = ""; ph.textContent = "請選擇課別";
+        ph.value = ''; ph.textContent = '請選擇課別';
         deptSelect.appendChild(ph);
-        DEPT_MAP[group].forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d; opt.textContent = d;
-            deptSelect.appendChild(opt);
+        DEPT_MAP[g].forEach(d => {
+            const o = document.createElement('option');
+            o.value = d; o.textContent = d;
+            deptSelect.appendChild(o);
         });
     });
 
-    // ====== 日期 → 查詢可預約時段 ======
+    // ── 日期 → 查詢時段 ──
     const slotSelect = document.getElementById('slot');
     const slotHint   = document.getElementById('slotHint');
 
-    async function loadSlots(date){
+    async function loadSlots(date) {
         slotSelect.disabled = true;
         slotSelect.innerHTML = '<option>查詢可預約時段中...</option>';
         slotHint.textContent = '';
@@ -223,22 +280,22 @@
             const res    = await fetch(`${GOOGLE_SHEET_URL}?date=${date}`);
             const result = await res.json();
             slotSelect.innerHTML = '';
-            if(result.status === "success" && result.slots.length > 0){
+            if (result.status === "success" && result.slots.length > 0) {
                 const ph = document.createElement('option');
-                ph.value = ""; ph.textContent = "請選擇時段";
+                ph.value = ''; ph.textContent = '請選擇時段';
                 slotSelect.appendChild(ph);
                 result.slots.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.slot;
-                    opt.textContent = `${s.slot}（剩餘 ${s.remaining} 位）`;
-                    slotSelect.appendChild(opt);
+                    const o = document.createElement('option');
+                    o.value = s.slot;
+                    o.textContent = `${s.slot}（剩餘 ${s.remaining} 位）`;
+                    slotSelect.appendChild(o);
                 });
                 slotSelect.disabled = false;
             } else {
                 slotSelect.innerHTML = '<option value="">此日期已無可預約時段</option>';
                 slotHint.textContent = '請改選其他日期';
             }
-        } catch(err){
+        } catch (err) {
             slotSelect.innerHTML = '<option value="">查詢失敗，請重新選擇日期</option>';
             slotHint.textContent = '網路連線錯誤：' + err;
         }
@@ -246,53 +303,59 @@
 
     dateSelect.addEventListener('change', () => {
         const date = dateSelect.value;
-        if(!date){
+        if (!date) {
             slotSelect.disabled = true;
             slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
+            slotHint.textContent = '';
             return;
         }
         loadSlots(date);
     });
 
-    // ====== 送出表單 ======
+    // ── 送出表單 ──
     document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const submitBtn = document.getElementById('submitBtn');
-        const empCode = document.getElementById('empCode').value.trim();
+        const btn     = document.getElementById('submitBtn');
+        const empName = document.getElementById('empName').value.trim();
         const group   = groupSelect.value;
         const dept    = deptSelect.value;
         const date    = dateSelect.value;
         const slot    = slotSelect.value;
         const items   = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
 
-        if(!slot)         { alert("請選擇預約時段"); return; }
-        if(!items.length) { alert("請至少選擇一項檢查項目"); return; }
+        if (!empName)      { alert("請填寫姓名代號"); return; }
+        if (!group)        { alert("請選擇組別"); return; }
+        if (!dept)         { alert("請選擇課別"); return; }
+        if (!items.length) { alert("請至少選擇一項檢查項目"); return; }
+        if (!date)         { alert("請選擇預約日期"); return; }
+        if (!slot)         { alert("請選擇預約時段"); return; }
 
-        submitBtn.disabled = true;
-        submitBtn.innerText = "預約資料送出中，請稍候...";
+        btn.disabled  = true;
+        btn.innerText = "預約資料送出中，請稍候...";
 
         try {
             const res    = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                body: JSON.stringify({ empCode, group, dept, items, date, slot })
+                body: JSON.stringify({ empName, group, dept, items, date, slot })
             });
             const result = await res.json();
-            if(result.status === "success"){
-                alert("預約成功！");
+            if (result.status === "success") {
+                alert("✅ 預約成功！請記下您的預約時段。");
                 document.getElementById('bookingForm').reset();
                 deptSelect.disabled = true;
                 deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
                 slotSelect.disabled  = true;
                 slotSelect.innerHTML = '<option value="">請先選擇日期</option>';
+                slotHint.textContent = '';
             } else {
                 alert("發生錯誤：" + result.message);
-                loadSlots(date);
+                if (date) loadSlots(date);
             }
-        } catch(err){
+        } catch (err) {
             alert("網路連線錯誤，請重試：" + err);
         } finally {
-            submitBtn.disabled  = false;
-            submitBtn.innerText = "送出預約";
+            btn.disabled  = false;
+            btn.innerText = "送出預約";
         }
     });
 </script>
