@@ -15,13 +15,13 @@
         align-items: flex-start;
         padding: 40px 20px;
     }
-    .form-container {
+    .page { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+    .form-container, .query-container {
         background: white;
         padding: 36px 32px;
         border-radius: 12px;
         box-shadow: 0 6px 24px rgba(0,0,0,0.12);
         width: 100%;
-        max-width: 500px;
     }
     .header {
         text-align: center;
@@ -34,7 +34,7 @@
     .form-group { margin-bottom: 18px; }
     label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 14px; }
     .required { color: #e53935; margin-left: 2px; }
-    input[type="text"], input[type="tel"], select {
+    input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid #ccc;
@@ -42,20 +42,24 @@
         font-size: 14px;
         transition: border-color .2s;
         background: white;
+        font-family: inherit;
     }
-    input[type="text"]:focus, input[type="tel"]:focus, select:focus {
+    input:focus, select:focus {
         outline: none;
         border-color: #43a047;
         box-shadow: 0 0 0 3px rgba(67,160,71,.12);
     }
     select:disabled { background: #f5f5f5; color: #aaa; cursor: not-allowed; }
-    .checkbox-group { border: 1px solid #ccc; border-radius: 6px; padding: 12px 16px; }
-    .checkbox-group label {
+    .checkbox-group, .radio-group { border: 1px solid #ccc; border-radius: 6px; padding: 12px 16px; }
+    .checkbox-group label, .radio-group label {
         font-weight: normal; display: flex; align-items: center;
         gap: 8px; margin-bottom: 9px; color: #444; cursor: pointer; font-size: 14px;
     }
-    .checkbox-group label:last-child { margin-bottom: 0; }
-    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #43a047; flex-shrink: 0; }
+    .checkbox-group label:last-child, .radio-group label:last-child { margin-bottom: 0; }
+    .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] {
+        width: 16px; height: 16px; cursor: pointer; accent-color: #43a047; flex-shrink: 0;
+    }
+    .radio-group { display: flex; gap: 20px; }
     .slot-info { border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 6px; }
     .slot-ok   { background: #f1f8e9; border: 1px solid #aed581; color: #33691e; }
     .slot-full { background: #fce4ec; border: 1px solid #f48fb1; color: #880e4f; }
@@ -63,16 +67,29 @@
     .hint { font-size: 12px; color: #f57c00; margin-top: 5px; }
     hr.divider { border: none; border-top: 1px dashed #e0e0e0; margin: 20px 0; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    button[type="submit"] {
+    button[type="submit"], .query-btn {
         width: 100%; padding: 13px; background: #43a047; color: white;
         border: none; border-radius: 6px; font-size: 16px; font-weight: 700;
         cursor: pointer; margin-top: 8px; transition: background .2s; letter-spacing: 2px;
     }
-    button[type="submit"]:hover:not(:disabled) { background: #388e3c; }
-    button[type="submit"]:disabled { background: #bdbdbd; cursor: not-allowed; }
+    button[type="submit"]:hover:not(:disabled), .query-btn:hover:not(:disabled) { background: #388e3c; }
+    button[type="submit"]:disabled, .query-btn:disabled { background: #bdbdbd; cursor: not-allowed; }
+    .query-container h2 { font-size: 16px; color: #1b5e20; margin-bottom: 16px; }
+    .query-row { display: flex; gap: 10px; }
+    .query-row input { flex: 1; }
+    .query-row button { width: auto; padding: 10px 18px; margin-top: 0; }
+    .query-result { margin-top: 16px; font-size: 14px; }
+    .query-result table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .query-result th, .query-result td {
+        border: 1px solid #e0e0e0; padding: 8px 10px; font-size: 13px; text-align: left;
+    }
+    .query-result th { background: #f1f8e9; color: #1b5e20; }
+    .query-empty { color: #888; font-size: 13px; margin-top: 8px; }
 </style>
 </head>
 <body>
+<div class="page">
+
 <div class="form-container">
     <div class="header">
         <h1>115年興達發電廠<br>健康檢查預約系統</h1>
@@ -82,9 +99,46 @@
     <form id="bookingForm">
 
         <div class="form-group">
-            <label for="empName">姓名代號<span class="required">*</span></label>
-            <input type="text" id="empName" required placeholder="請輸入姓名代號">
+            <label for="empCode">姓名代號<span class="required">*</span></label>
+            <input type="text" id="empCode" required placeholder="請輸入姓名代號">
         </div>
+
+        <div class="form-group">
+            <label for="empName">姓名<span class="required">*</span></label>
+            <input type="text" id="empName" required placeholder="請輸入真實姓名">
+        </div>
+
+        <div class="form-group">
+            <label for="idnum">身分證字號<span class="required">*</span></label>
+            <input type="text" id="idnum" required maxlength="10" placeholder="例：A123456789">
+        </div>
+
+        <div class="two-col">
+            <div class="form-group">
+                <label for="birth">出生年月日<span class="required">*</span></label>
+                <input type="date" id="birth" required>
+            </div>
+            <div class="form-group">
+                <label>性別<span class="required">*</span></label>
+                <div class="radio-group">
+                    <label><input type="radio" name="gender" value="男" required> 男</label>
+                    <label><input type="radio" name="gender" value="女"> 女</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="form-group">
+                <label for="phone">行動電話<span class="required">*</span></label>
+                <input type="tel" id="phone" required placeholder="例：0912345678">
+            </div>
+            <div class="form-group">
+                <label for="email">電子郵件<span class="required">*</span></label>
+                <input type="email" id="email" required placeholder="例：name@mail.com">
+            </div>
+        </div>
+
+        <hr class="divider">
 
         <div class="form-group">
             <label for="group">組別<span class="required">*</span></label>
@@ -114,20 +168,6 @@
 
         <hr class="divider">
 
-        <!-- 連絡電話（兩欄） -->
-        <div class="two-col">
-            <div class="form-group">
-                <label for="phone1">連絡電話1<span class="required">*</span></label>
-                <input type="tel" id="phone1" required placeholder="例：0912345678">
-            </div>
-            <div class="form-group">
-                <label for="phone2">連絡電話2</label>
-                <input type="tel" id="phone2" placeholder="備用電話（選填）">
-            </div>
-        </div>
-
-        <hr class="divider">
-
         <div class="form-group">
             <label for="date">預約日期<span class="required">*</span></label>
             <select id="date" required>
@@ -141,11 +181,22 @@
     </form>
 </div>
 
+<div class="query-container">
+    <h2>🔍 查詢我的預約紀錄</h2>
+    <div class="query-row">
+        <input type="text" id="queryCode" placeholder="請輸入姓名代號">
+        <button type="button" class="query-btn" id="queryBtn">查詢</button>
+    </div>
+    <div class="query-result" id="queryResult"></div>
+</div>
+
+</div>
+
 <script>
     // ─────────────────────────────────────────────────────────
     // ⚙ 請將下方替換成你的 Google Apps Script Web App URL
     // ─────────────────────────────────────────────────────────
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxF8xKgv3ooknria1Is-vqVrCAS46MNQAgd0FBBv-oncRyqaI-Uue0Th8-2hss6wpST/exec";
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyDfpUEFmlJPaJ4edrMfsl5klcofirgKhPSg8l9wv3yKStCajZCjfA_Ch2uGl_2QLeb/exec";
 
     // ====== 指定可預約日期（民國115年 = 西元2026年） ======
     const AVAILABLE_DATES = [
@@ -197,17 +248,6 @@
         groupSelect.appendChild(o);
     });
 
-    // ── 日期初始化（直接列出指定日期，不自動產生） ──
-    const dateSelect = document.getElementById('date');
-    AVAILABLE_DATES.forEach(ds => {
-        const d   = new Date(ds + "T00:00:00");
-        const day = WEEKDAY_NAMES[d.getDay()];
-        const o   = document.createElement('option');
-        o.value = ds;
-        o.textContent = `${ds} (${day})`;
-        dateSelect.appendChild(o);
-    });
-
     // ── 組別 → 課別 ──
     const deptSelect = document.getElementById('dept');
     groupSelect.addEventListener('change', () => {
@@ -229,11 +269,46 @@
         });
     });
 
-    // ── 日期 → 查詢當日名額 ──
-    const slotInfo  = document.getElementById('slotInfo');
-    const slotHint  = document.getElementById('slotHint');
-    const submitBtn = document.getElementById('submitBtn');
+    // ── 日期下拉：一開始先全部列出，並於載入完成後查詢名額，額滿的日期自動移除 ──
+    const dateSelect = document.getElementById('date');
+    const slotInfo   = document.getElementById('slotInfo');
+    const slotHint   = document.getElementById('slotHint');
+    const submitBtn  = document.getElementById('submitBtn');
 
+    function buildDateOptions(fullDatesSet) {
+        dateSelect.innerHTML = '<option value="">請選擇日期</option>';
+        AVAILABLE_DATES.forEach(ds => {
+            if (fullDatesSet.has(ds)) return; // 額滿日期自動消失
+            const d   = new Date(ds + "T00:00:00");
+            const day = WEEKDAY_NAMES[d.getDay()];
+            const o   = document.createElement('option');
+            o.value = ds;
+            o.textContent = `${ds} (${day})`;
+            dateSelect.appendChild(o);
+        });
+    }
+
+    async function loadAllSlots() {
+        // 先列出全部日期，避免查詢期間表單空白
+        buildDateOptions(new Set());
+        try {
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?action=checkAllSlots&dates=${AVAILABLE_DATES.join(',')}`);
+            const result = await res.json();
+            if (result.status === "success") {
+                const fullDates = new Set();
+                Object.keys(result.slots).forEach(ds => {
+                    if (result.slots[ds].full) fullDates.add(ds);
+                });
+                buildDateOptions(fullDates);
+            }
+        } catch (err) {
+            // 查詢失敗時仍保留完整日期清單，讓使用者可繼續操作，
+            // 實際名額將於選擇日期時再次確認
+        }
+    }
+    loadAllSlots();
+
+    // ── 選擇日期 → 再次確認當日剩餘名額 ──
     async function loadDayCapacity(date) {
         slotInfo.style.display = 'block';
         slotInfo.className = 'slot-info slot-load';
@@ -241,7 +316,7 @@
         slotHint.textContent = '';
         submitBtn.disabled = true;
         try {
-            const res    = await fetch(`${GOOGLE_SHEET_URL}?date=${date}`);
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?action=checkSlot&date=${date}`);
             const result = await res.json();
             if (result.status === "success") {
                 if (result.remaining > 0) {
@@ -252,6 +327,7 @@
                     slotInfo.className = 'slot-info slot-full';
                     slotInfo.textContent = '⚠ 此日期名額已額滿，請選擇其他日期';
                     submitBtn.disabled = true;
+                    loadAllSlots();
                 }
             } else {
                 slotInfo.className = 'slot-info slot-full';
@@ -277,20 +353,30 @@
     // ── 送出表單 ──
     document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn     = document.getElementById('submitBtn');
-        const empName = document.getElementById('empName').value.trim();
-        const group   = groupSelect.value;
-        const dept    = deptSelect.value;
-        const date    = dateSelect.value;
-        const phone1  = document.getElementById('phone1').value.trim();
-        const phone2  = document.getElementById('phone2').value.trim();
-        const items   = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
+        const btn      = document.getElementById('submitBtn');
+        const code     = document.getElementById('empCode').value.trim();
+        const name     = document.getElementById('empName').value.trim();
+        const idnum    = document.getElementById('idnum').value.trim();
+        const birth    = document.getElementById('birth').value;
+        const genderEl = document.querySelector('input[name="gender"]:checked');
+        const gender   = genderEl ? genderEl.value : '';
+        const phone    = document.getElementById('phone').value.trim();
+        const email    = document.getElementById('email').value.trim();
+        const group    = groupSelect.value;
+        const dept     = deptSelect.value;
+        const date     = dateSelect.value;
+        const items    = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(cb => cb.value);
 
-        if (!empName)      { alert("請填寫姓名代號"); return; }
+        if (!code)         { alert("請填寫姓名代號"); return; }
+        if (!name)         { alert("請填寫姓名"); return; }
+        if (!idnum)        { alert("請填寫身分證字號"); return; }
+        if (!birth)        { alert("請填寫出生年月日"); return; }
+        if (!gender)       { alert("請選擇性別"); return; }
+        if (!phone)        { alert("請填寫行動電話"); return; }
+        if (!email)        { alert("請填寫電子郵件"); return; }
         if (!group)        { alert("請選擇組別"); return; }
         if (!dept)         { alert("請選擇課別"); return; }
         if (!items.length) { alert("請至少選擇一項檢查項目"); return; }
-        if (!phone1)       { alert("請填寫連絡電話1"); return; }
         if (!date)         { alert("請選擇預約日期"); return; }
 
         btn.disabled  = true;
@@ -299,17 +385,25 @@
         try {
             const res    = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                body: JSON.stringify({ empName, group, dept, items, phone1, phone2, date, slot: SLOT_VALUE })
+                body: JSON.stringify({
+                    code, name, idnum, birth, gender, phone, email,
+                    group, dept, items, date, slot: SLOT_VALUE
+                })
             });
             const result = await res.json();
+
             if (result.status === "success") {
-                alert(`✅ 預約成功！\n姓名代號：${empName}\n預約日期：${date}\n時間：上午場\n請準時前往，謝謝。`);
+                alert(`✅ ${result.message}！\n姓名代號：${code}\n預約日期：${date}\n時間：上午場\n請準時前往，並確認已空腹 8 小時，謝謝。`);
                 document.getElementById('bookingForm').reset();
                 deptSelect.disabled = true;
                 deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
                 slotInfo.style.display = 'none';
                 slotHint.textContent = '';
                 btn.disabled = true;
+                loadAllSlots();
+            } else if (result.status === "notfound") {
+                // 人員不在本次應受檢名單內
+                alert("⚠ " + result.message);
             } else {
                 alert("發生錯誤：" + result.message);
                 if (date) loadDayCapacity(date);
@@ -318,6 +412,38 @@
             alert("網路連線錯誤，請重試：" + err);
         } finally {
             btn.innerText = "送出預約";
+        }
+    });
+
+    // ── 依姓名代號查詢預約紀錄 ──
+    const queryBtn    = document.getElementById('queryBtn');
+    const queryResult = document.getElementById('queryResult');
+
+    queryBtn.addEventListener('click', async () => {
+        const code = document.getElementById('queryCode').value.trim();
+        if (!code) { alert("請輸入姓名代號"); return; }
+
+        queryBtn.disabled = true;
+        queryResult.innerHTML = '<div class="query-empty">查詢中...</div>';
+
+        try {
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?action=queryByCode&code=${encodeURIComponent(code)}`);
+            const result = await res.json();
+
+            if (result.status === "success") {
+                let html = '<table><tr><th>姓名</th><th>預約日期</th><th>時段</th><th>檢查項目</th></tr>';
+                result.records.forEach(r => {
+                    html += `<tr><td>${r.name}</td><td>${r.date}</td><td>${r.slot}</td><td>${r.items}</td></tr>`;
+                });
+                html += '</table>';
+                queryResult.innerHTML = html;
+            } else {
+                queryResult.innerHTML = `<div class="query-empty">${result.message}</div>`;
+            }
+        } catch (err) {
+            queryResult.innerHTML = `<div class="query-empty">查詢失敗，請重試：${err}</div>`;
+        } finally {
+            queryBtn.disabled = false;
         }
     });
 </script>
