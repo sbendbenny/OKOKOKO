@@ -59,6 +59,10 @@
     .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] {
         width: 16px; height: 16px; cursor: pointer; accent-color: #43a047; flex-shrink: 0;
     }
+    .checkbox-group input[type="checkbox"]:disabled {
+        cursor: not-allowed; accent-color: #43a047; opacity: 1;
+    }
+    .checkbox-group label:has(input:disabled) { cursor: not-allowed; color: #333; }
     .radio-group { display: flex; gap: 20px; }
     .slot-info { border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 6px; }
     .slot-ok   { background: #f1f8e9; border: 1px solid #aed581; color: #33691e; }
@@ -157,13 +161,14 @@
         <hr class="divider">
 
         <div class="form-group">
-            <label>檢查項目（可多選）<span class="required">*</span></label>
+            <label>檢查項目（依人員名單自動帶出，無法手動修改）<span class="required">*</span></label>
             <div class="checkbox-group">
-                <label><input type="checkbox" name="items" value="高溫健康檢查"> 高溫健康檢查</label>
-                <label><input type="checkbox" name="items" value="粉塵健康檢查"> 粉塵健康檢查</label>
-                <label><input type="checkbox" name="items" value="噪音健康檢查"> 噪音健康檢查</label>
-                <label><input type="checkbox" name="items" value="一般健康檢查"> 一般健康檢查</label>
+                <label><input type="checkbox" name="items" value="高溫健康檢查" disabled> 高溫健康檢查</label>
+                <label><input type="checkbox" name="items" value="粉塵健康檢查" disabled> 粉塵健康檢查</label>
+                <label><input type="checkbox" name="items" value="噪音健康檢查" disabled> 噪音健康檢查</label>
+                <label><input type="checkbox" name="items" value="一般健康檢查" disabled> 一般健康檢查</label>
             </div>
+            <div class="hint" id="rosterHint">請先填寫姓名代號與姓名，系統將自動帶出應施作的檢查項目</div>
         </div>
 
         <hr class="divider">
@@ -184,7 +189,7 @@
 <div class="query-container">
     <h2>🔍 查詢我的預約紀錄</h2>
     <div class="query-row">
-        <input type="text" id="queryCode" placeholder="請輸入姓名代號">
+        <input type="text" id="queryCode" placeholder="請輸入姓名代號，若無代號請輸入姓名">
         <button type="button" class="query-btn" id="queryBtn">查詢</button>
     </div>
     <div class="query-result" id="queryResult"></div>
@@ -196,7 +201,7 @@
     // ─────────────────────────────────────────────────────────
     // ⚙ 請將下方替換成你的 Google Apps Script Web App URL
     // ─────────────────────────────────────────────────────────
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyDfpUEFmlJPaJ4edrMfsl5klcofirgKhPSg8l9wv3yKStCajZCjfA_Ch2uGl_2QLeb/exec";
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzr0g81M3slePOVBO7v0vk9MUKBeKFBbghfeFYW5ikDQfobrXLsyxc9SAcILmLcRr98/exec";
 
     // ====== 指定可預約日期（民國115年 = 西元2026年） ======
     const AVAILABLE_DATES = [
@@ -268,6 +273,60 @@
             deptSelect.appendChild(o);
         });
     });
+
+    // ── 依姓名代號（若空則以姓名）比對人員名單，自動帶出建議檢查項目 ──
+    const empCodeInput = document.getElementById('empCode');
+    const empNameInput = document.getElementById('empName');
+    const itemCheckboxes = document.querySelectorAll('input[name="items"]');
+    const rosterHint = document.getElementById('rosterHint');
+    let lastRosterQuery = '';
+
+    async function lookupRosterAndFill() {
+        const code = empCodeInput.value.trim();
+        const name = empNameInput.value.trim();
+        if (!code || !name) {
+            rosterHint.style.color = '#f57c00';
+            rosterHint.textContent = '請先填寫姓名代號與姓名，系統將自動帶出應施作的檢查項目';
+            itemCheckboxes.forEach(cb => { cb.checked = false; });
+            return;
+        }
+
+        const key = code + '|' + name;
+        if (key === lastRosterQuery) return;
+        lastRosterQuery = key;
+
+        rosterHint.style.color = '#888';
+        rosterHint.textContent = '比對人員名單中...';
+
+        try {
+            const params = new URLSearchParams();
+            params.set('action', 'lookupPerson');
+            params.set('code', code);
+            params.set('name', name);
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?${params.toString()}`);
+            const result = await res.json();
+
+            if (result.status === 'success') {
+                itemCheckboxes.forEach(cb => {
+                    cb.checked = result.match.items.includes(cb.value);
+                });
+                rosterHint.style.color = '#2e7d32';
+                rosterHint.textContent = `✅ 已依人員名單自動帶入 ${result.match.name} 應施作的檢查項目`;
+            } else if (result.status === 'notfound') {
+                itemCheckboxes.forEach(cb => { cb.checked = false; });
+                rosterHint.style.color = '#e53935';
+                rosterHint.textContent = '⚠ ' + result.message;
+                alert('⚠ ' + result.message);
+            }
+        } catch (err) {
+            // 查詢失敗不阻擋填寫，僅略過自動帶入
+            rosterHint.style.color = '#e53935';
+            rosterHint.textContent = '名單查詢失敗，請重新確認姓名代號與姓名後再試一次';
+        }
+    }
+
+    empCodeInput.addEventListener('blur', lookupRosterAndFill);
+    empNameInput.addEventListener('blur', lookupRosterAndFill);
 
     // ── 日期下拉：一開始先全部列出，並於載入完成後查詢名額，額滿的日期自動移除 ──
     const dateSelect = document.getElementById('date');
@@ -376,7 +435,7 @@
         if (!email)        { alert("請填寫電子郵件"); return; }
         if (!group)        { alert("請選擇組別"); return; }
         if (!dept)         { alert("請選擇課別"); return; }
-        if (!items.length) { alert("請至少選擇一項檢查項目"); return; }
+        if (!items.length) { alert("尚未取得檢查項目，請確認姓名代號與姓名皆已正確填寫並完成名單比對"); return; }
         if (!date)         { alert("請選擇預約日期"); return; }
 
         btn.disabled  = true;
@@ -399,6 +458,9 @@
                 deptSelect.innerHTML = '<option value="">請先選擇組別</option>';
                 slotInfo.style.display = 'none';
                 slotHint.textContent = '';
+                rosterHint.style.color = '#f57c00';
+                rosterHint.textContent = '請先填寫姓名代號與姓名，系統將自動帶出應施作的檢查項目';
+                lastRosterQuery = '';
                 btn.disabled = true;
                 loadAllSlots();
             } else if (result.status === "notfound") {
@@ -415,19 +477,20 @@
         }
     });
 
+   
     // ── 依姓名代號查詢預約紀錄 ──
     const queryBtn    = document.getElementById('queryBtn');
     const queryResult = document.getElementById('queryResult');
 
     queryBtn.addEventListener('click', async () => {
-        const code = document.getElementById('queryCode').value.trim();
-        if (!code) { alert("請輸入姓名代號"); return; }
+        const q = document.getElementById('queryCode').value.trim();
+        if (!q) { alert("請輸入姓名代號或姓名"); return; }
 
         queryBtn.disabled = true;
         queryResult.innerHTML = '<div class="query-empty">查詢中...</div>';
 
         try {
-            const res    = await fetch(`${GOOGLE_SHEET_URL}?action=queryByCode&code=${encodeURIComponent(code)}`);
+            const res    = await fetch(`${GOOGLE_SHEET_URL}?action=queryByCode&q=${encodeURIComponent(q)}`);
             const result = await res.json();
 
             if (result.status === "success") {
