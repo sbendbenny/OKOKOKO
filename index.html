@@ -242,7 +242,7 @@
 </div>
 
 <div class="query-container">
-    <h2>🔍 查詢我的預約紀錄(請輸入姓名代號，若無代號請輸入姓名)</h2>
+    <h2>🔍 查詢我的預約紀錄(姓名代號開頭為0者，需省略0，如：012305，輸入12305)</h2>
     <div class="query-row">
         <input type="text" id="queryCode" placeholder="請輸入姓名代號，若無代號請輸入姓名">
         <button type="button" class="query-btn" id="queryBtn">查詢</button>
@@ -312,21 +312,21 @@
     // ─────────────────────────────────────────────────────────
     // ⚙ 請將下方替換成你的 Google Apps Script Web App URL
     // ─────────────────────────────────────────────────────────
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbz6537w0AnQLQRaOn73w09bJfiZGLp1gYocWCDcJoEWg_2LGh-Gs8KTAnHyZpEHfhr2/exec";
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxxswn-JV96GfQ58FSoWfU0hOTPbuZ1O80E8SADr2JjQ0InmK8rK9KWIbvDpfW6d4KF/exec";
 
     // ====== 指定可預約日期（民國115年 = 西元2026年） ======
     const AVAILABLE_DATES = [
         "2026-09-30",
-        "2026-10-01","2026-10-02","2026-10-05","2026-10-06",
+        "2026-10-02",
         "2026-10-07","2026-10-08","2026-10-12","2026-10-13",
-        "2026-10-14","2026-10-15","2026-10-16","2026-10-19",
+        "2026-10-14","2026-10-15","2026-10-16",
         "2026-10-20","2026-10-21","2026-10-22","2026-10-23",
         "2026-10-24","2026-10-27","2026-10-28","2026-10-29","2026-10-30"
     ];
 
     const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
     const SLOT_VALUE    = "上午場";
-    const CAPACITY      = 29;
+    const CAPACITY      = 29; // 預設名額（僅作為前端顯示的備援值，實際名額以後端回傳的 result.capacity 為準）
 
     // ====== 組別與課別對應表 ======
     const DEPT_MAP = {
@@ -492,7 +492,7 @@
             if (result.status === "success") {
                 if (result.remaining > 0) {
                     slotInfo.className = 'slot-info slot-ok';
-                    slotInfo.textContent = `上午場｜剩餘名額：${result.remaining} / ${CAPACITY} 位`;
+                    slotInfo.textContent = `上午場｜剩餘名額：${result.remaining} / ${result.capacity !== undefined ? result.capacity : CAPACITY} 位`;
                     submitBtn.disabled = false;
                 } else {
                     slotInfo.className = 'slot-info slot-full';
