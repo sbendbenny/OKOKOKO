@@ -312,7 +312,7 @@
     // ─────────────────────────────────────────────────────────
     // ⚙ 請將下方替換成你的 Google Apps Script Web App URL
     // ─────────────────────────────────────────────────────────
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxxswn-JV96GfQ58FSoWfU0hOTPbuZ1O80E8SADr2JjQ0InmK8rK9KWIbvDpfW6d4KF/exec";
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyYAeTSqvfWuDBb9qOOu8PSkiFHTJssljDi71NPwYg3qtd3PU7k5wMIuXr2QkdrglmZ/exec";
 
     // ====== 指定可預約日期（民國115年 = 西元2026年） ======
     const AVAILABLE_DATES = [
@@ -323,6 +323,11 @@
         "2026-10-20","2026-10-21","2026-10-22","2026-10-23",
         "2026-10-27","2026-10-28","2026-10-29","2026-10-30"
     ];
+
+    // ====== 含噪音／粉塵／高溫任一檢查項目者，僅開放此日期（含）以前預約 ======
+    const SPECIAL_ITEM_DATE_LIMIT = "2026-10-15";
+    const SPECIAL_ITEMS = ["高溫健康檢查", "粉塵健康檢查", "噪音健康檢查"];
+    let currentItemRestriction = false; // 目前這位受檢人是否受到上述日期限制
 
     const WEEKDAY_NAMES = ["日","一","二","三","四","五","六"];
     const SLOT_VALUE    = "上午場";
@@ -422,13 +427,33 @@
                 itemCheckboxes.forEach(cb => {
                     cb.checked = result.match.items.includes(cb.value);
                 });
+
+                const hasSpecial = result.match.items.some(it => SPECIAL_ITEMS.includes(it));
+                const restrictionChanged = (hasSpecial !== currentItemRestriction);
+                currentItemRestriction = hasSpecial;
+
                 rosterHint.style.color = '#2e7d32';
                 rosterHint.textContent = `✅ 已依人員名單自動帶入 ${result.match.name} 應施作的檢查項目`;
+                if (hasSpecial) {
+                    rosterHint.textContent += `（含噪音／粉塵／高溫項目，僅開放 ${SPECIAL_ITEM_DATE_LIMIT}（含）以前之日期預約）`;
+                }
+
+                // 若限制狀態有變動，需重新篩選日期下拉選單，並清空已選日期避免選到不再開放的日期
+                if (restrictionChanged) {
+                    dateSelect.value = '';
+                    slotInfo.style.display = 'none';
+                    submitBtn.disabled = true;
+                    loadAllSlots();
+                }
             } else if (result.status === 'notfound') {
                 itemCheckboxes.forEach(cb => { cb.checked = false; });
                 rosterHint.style.color = '#e53935';
                 rosterHint.textContent = '⚠ ' + result.message;
                 alert('⚠ ' + result.message);
+                if (currentItemRestriction) {
+                    currentItemRestriction = false;
+                    loadAllSlots();
+                }
             }
         } catch (err) {
             // 查詢失敗不阻擋填寫，僅略過自動帶入
@@ -450,6 +475,7 @@
         dateSelect.innerHTML = '<option value="">請選擇日期</option>';
         AVAILABLE_DATES.forEach(ds => {
             if (fullDatesSet.has(ds)) return; // 額滿日期自動消失
+            if (currentItemRestriction && ds > SPECIAL_ITEM_DATE_LIMIT) return; // 含噪音/粉塵/高溫者，超過限制日期不開放
             const d   = new Date(ds + "T00:00:00");
             const day = WEEKDAY_NAMES[d.getDay()];
             const o   = document.createElement('option');
@@ -597,6 +623,7 @@
                 rosterHint.style.color = '#f57c00';
                 rosterHint.textContent = '請先填寫姓名代號與姓名，系統將自動帶出應施作的檢查項目';
                 lastRosterQuery = '';
+                currentItemRestriction = false;
                 btn.disabled = true;
                 loadAllSlots();
             } else if (result.status === "notfound") {
